@@ -231,30 +231,6 @@ function Setup-Visibility {
     }
 }
 
-# ── Step 4: 构建前端 ──
-function Build-Frontend {
-    Info "构建 React 前端..."
-    $node = Get-Command node -ErrorAction SilentlyContinue
-    if (-not $node) {
-        Warn "未找到 node，跳过前端构建。"
-        Warn "请安装 Node.js 18+ 后运行: cd edict\frontend && npm install && npm run build"
-        return
-    }
-    $pkgJson = Join-Path $REPO_DIR "edict\frontend\package.json"
-    if (Test-Path $pkgJson) {
-        Push-Location (Join-Path $REPO_DIR "edict\frontend")
-        npm install --silent 2>$null
-        npm run build 2>$null
-        Pop-Location
-        $indexHtml = Join-Path $REPO_DIR "dashboard\dist\index.html"
-        if (Test-Path $indexHtml) {
-            Log "前端构建完成: dashboard\dist\"
-        } else {
-            Warn "前端构建可能失败，请手动检查"
-        }
-    }
-}
-
 # ── Step 5: 首次数据同步 ──
 function First-Sync {
     Info "执行首次数据同步..."
@@ -287,7 +263,6 @@ Register-Agents
 Init-Data
 Link-Resources
 Setup-Visibility
-Build-Frontend
 First-Sync
 Restart-Gateway
 
@@ -300,9 +275,17 @@ Write-Host "下一步："
 Write-Host "  1. 配置 API Key（如尚未配置）:"
 Write-Host "     openclaw agents add taizi     # 按提示输入 Anthropic API Key"
 Write-Host "     .\install.ps1                 # 重新运行以同步到所有 Agent"
-Write-Host "  2. 启动数据刷新循环:  bash scripts/run_loop.sh"
-Write-Host "  3. 启动看板服务器:    python dashboard/server.py"
-Write-Host "  4. 打开看板:          http://127.0.0.1:7891"
+Write-Host ""
+Write-Host "  2. 开始使用:"
+Write-Host "     openclaw chat taizi           # CLI 方式与 Agent 对话"
+Write-Host ""
+Write-Host "  🖥️  可选 - 看板系统（可视化任务管理）:"
+Write-Host "     bash scripts/run_loop.sh      # 启动数据刷新循环"
+Write-Host "     python dashboard\server.py    # 启动看板服务"
+Write-Host "     start http://127.0.0.1:7891   # 打开看板"
+Write-Host ""
+Write-Host "  🎨  可选 - 自定义前端:"
+Write-Host "     bash scripts/build_frontend.sh  # 构建 React 前端"
 Write-Host ""
 Warn "首次安装必须配置 API Key，否则 Agent 会报错"
 Info "文档: docs/getting-started.md"
