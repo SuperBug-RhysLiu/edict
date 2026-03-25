@@ -342,30 +342,6 @@ sync_auth() {
 }
 
 # ── Step 4: 构建前端 ──────────────────────────────────────────
-build_frontend() {
-  info "构建 React 前端..."
-
-  if ! command -v node &>/dev/null; then
-    warn "未找到 node，跳过前端构建。看板将使用预构建版本（如果存在）"
-    warn "请安装 Node.js 18+ 后运行: cd edict/frontend && npm install && npm run build"
-    return
-  fi
-
-  if [ -f "$REPO_DIR/edict/frontend/package.json" ]; then
-    cd "$REPO_DIR/edict/frontend"
-    npm install --silent 2>/dev/null || npm install
-    npm run build 2>/dev/null
-    cd "$REPO_DIR"
-    if [ -f "$REPO_DIR/dashboard/dist/index.html" ]; then
-      log "前端构建完成: dashboard/dist/"
-    else
-      warn "前端构建可能失败，请手动检查"
-    fi
-  else
-    warn "未找到 edict/frontend/package.json，跳过前端构建"
-  fi
-}
-
 # ── Step 5: 首次数据同步 ────────────────────────────────────
 first_sync() {
   info "执行首次数据同步..."
@@ -398,7 +374,6 @@ init_data
 link_resources
 setup_visibility
 sync_auth
-build_frontend
 first_sync
 restart_gateway
 
@@ -411,9 +386,14 @@ echo "下一步："
 echo "  1. 配置 API Key（如尚未配置）:"
 echo "     openclaw agents add taizi     # 按提示输入 Anthropic API Key"
 echo "     ./install.sh                  # 重新运行以同步到所有 Agent"
-echo "  2. 启动数据刷新循环:  bash scripts/run_loop.sh &"
-echo "  3. 启动看板服务器:    python3 dashboard/server.py"
-echo "  4. 打开看板:          http://127.0.0.1:7891"
+echo ""
+echo "  2. 开始使用:"
+echo "     openclaw chat taizi           # CLI 方式与 Agent 对话"
+echo ""
+echo "  🖥️  可选 - 看板系统（可视化任务管理）:"
+echo "     bash scripts/run_loop.sh &    # 启动数据刷新循环"
+echo "     python3 dashboard/server.py   # 启动看板服务器"
+echo "     open http://127.0.0.1:7891    # 打开看板"
 echo ""
 warn "首次安装必须配置 API Key，否则 Agent 会报错"
-info "文档: docs/getting-started.md"
+info "完整文档: docs/getting-started.md"

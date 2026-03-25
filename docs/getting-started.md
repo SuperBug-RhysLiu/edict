@@ -22,7 +22,7 @@ brew install openclaw
 openclaw init
 ```
 
-## 第二步：克隆并安装三省六部
+## 第二步：克隆并安装三省六部（核心）
 
 ```bash
 git clone https://github.com/cft0808/edict.git
@@ -31,11 +31,10 @@ chmod +x install.sh && ./install.sh
 ```
 
 安装脚本会自动完成：
-- ✅ 创建 12 个 Agent Workspace（`~/.openclaw/workspace-*`）
+- ✅ 创建 11 个 Agent Workspace（`~/.openclaw/workspace-*`）
 - ✅ 写入各省部 SOUL.md 人格文件
 - ✅ 注册 Agent 及权限矩阵到 `openclaw.json`
 - ✅ 配置旨意数据清洗规则
-- ✅ 构建 React 前端到 `dashboard/dist/`（需 Node.js 18+）
 - ✅ 初始化数据目录
 - ✅ 执行首次数据同步
 - ✅ 重启 Gateway 使配置生效
@@ -54,7 +53,39 @@ openclaw channels add --type feishu --agent taizi
 
 参考 OpenClaw 文档：https://docs.openclaw.ai/channels
 
-## 第四步：启动服务
+## 第四步：开始使用
+
+现在你可以直接与 Agent 对话了：
+
+```bash
+# CLI 方式
+openclaw chat taizi
+
+# 或通过消息渠道（飞书/Telegram等）
+```
+
+发送第一道旨意：
+
+```
+请帮我用 Python 写一个文本分类器：
+1. 使用 scikit-learn
+2. 支持多分类
+3. 输出混淆矩阵
+4. 写完整的文档
+```
+
+任务流转路径：
+```
+收件 → 太子分拣 → 中书规划 → 门下审议 → 已派发 → 执行中 → 已完成
+```
+
+---
+
+## 🖥️ 可选：看板系统
+
+> 如果你需要可视化任务管理界面，可以启用看板系统。**这是完全可选的**，Agent 协作不依赖看板。
+
+### 启动看板
 
 ```bash
 # 终端 1：数据刷新循环（每 15 秒同步）
@@ -69,32 +100,18 @@ open http://127.0.0.1:7891
 
 > 💡 **提示**：`run_loop.sh` 每 15 秒自动同步数据。可用 `&` 后台运行。
 
-> 💡 **看板即开即用**：`server.py` 内嵌 `dashboard/dashboard.html`，无需额外构建。Docker 镜像包含预构建的 React 前端。
+> 💡 **看板即开即用**：`server.py` 内嵌 `dashboard/dashboard.html`，无需额外构建。
 
-## 第五步：发送第一道旨意
+### 构建前端（可选）
 
-通过消息渠道发送任务（太子会自动识别并转发到中书省）：
+如果你需要自定义前端或使用完整 React 版本：
 
-```
-请帮我用 Python 写一个文本分类器：
-1. 使用 scikit-learn
-2. 支持多分类
-3. 输出混淆矩阵
-4. 写完整的文档
+```bash
+# 需要 Node.js 18+
+bash scripts/build_frontend.sh
 ```
 
-## 第六步：观察执行过程
-
-打开看板 http://127.0.0.1:7891
-
-1. **📋 旨意看板** — 观察任务在各状态之间流转
-2. **🔭 省部调度** — 查看各部门工作分布
-3. **📜 奏折阁** — 任务完成后自动归档为奏折
-
-任务流转路径：
-```
-收件 → 太子分拣 → 中书规划 → 门下审议 → 已派发 → 执行中 → 已完成
-```
+构建产物会输出到 `dashboard/dist/`。
 
 ---
 
@@ -128,12 +145,6 @@ open http://127.0.0.1:7891
 
 ## ❓ 故障排查
 
-### 看板显示「服务器未启动」
-```bash
-# 确认服务器正在运行
-python3 dashboard/server.py
-```
-
 ### Agent 报错 "No API key found for provider"
 
 这是最常见的问题。三省六部有 11 个 Agent，每个都需要 API Key。
@@ -156,6 +167,20 @@ openclaw agents add zhongshu
 # ... 其他 Agent
 ```
 
+### Agent 不响应 / 身份错误
+
+如果 Agent 不知道自己是"太子"等角色，说明 SOUL.md 未正确加载：
+
+```bash
+# 删除引导文件，让 Agent 直接使用 SOUL.md
+for agent in taizi zhongshu menxia shangshu hubu libu bingbu xingbu gongbu libu_hr zaochao; do
+  rm -f ~/.openclaw/workspace-$agent/BOOTSTRAP.md
+done
+
+# 重启 Gateway
+openclaw gateway restart
+```
+
 ### Agent 不响应
 ```bash
 # 检查 Gateway 状态
@@ -163,6 +188,12 @@ openclaw gateway status
 
 # 必要时重启
 openclaw gateway restart
+```
+
+### 看板显示「服务器未启动」
+```bash
+# 确认服务器正在运行
+python3 dashboard/server.py
 ```
 
 ### 数据不更新
