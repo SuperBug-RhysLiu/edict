@@ -62,7 +62,18 @@ function Backup-Existing {
         New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
 
         Get-ChildItem -Path $OC_HOME -Directory -Filter "workspace-*" | ForEach-Object {
-            Copy-Item -Path $_.FullName -Destination (Join-Path $backupDir $_.Name) -Recurse
+            # 跳过 Junction/ReparsePoint（符号链接可能导致复制失败）
+            $item = Get-Item $_.FullName
+            if (-not ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                Copy-Item -Path $_.FullName -Destination (Join-Path $backupDir $_.Name) -Recurse -ErrorAction SilentlyContinue
+            } else {
+                # 只备份 SOUL.md 和 AGENTS.md
+                $ws = $_.FullName
+                $dest = Join-Path $backupDir $_.Name
+                New-Item -ItemType Directory -Path $dest -Force | Out-Null
+                Copy-Item (Join-Path $ws "SOUL.md") $dest -ErrorAction SilentlyContinue
+                Copy-Item (Join-Path $ws "AGENTS.md") $dest -ErrorAction SilentlyContinue
+            }
         }
 
         if (Test-Path $OC_CFG) {
