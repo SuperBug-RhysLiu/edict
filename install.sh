@@ -364,11 +364,13 @@ check_deps
 backup_existing
 create_workspaces
 register_agents
-init_data
-link_resources
 setup_visibility
-sync_auth
 restart_gateway
+
+# 以下为看板系统准备，核心功能不需要
+# init_data
+# link_resources
+# sync_auth  # OpenClaw 新版本使用全局配置，无需同步
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"

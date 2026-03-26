@@ -258,10 +258,12 @@ Check-Deps
 Backup-Existing
 Create-Workspaces
 Register-Agents
-Init-Data
-Link-Resources
 Setup-Visibility
 Restart-Gateway
+
+# 以下为看板系统准备，核心功能不需要
+# Init-Data
+# Link-Resources
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════╗" -ForegroundColor Green
