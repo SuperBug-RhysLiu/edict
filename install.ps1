@@ -94,6 +94,12 @@ function Create-Workspaces {
         }
         Log "Workspace 已创建: $ws"
 
+        # 删除 OpenClaw 自动生成的 BOOTSTRAP.md（会覆盖 SOUL.md 作用）
+        $bootstrap = Join-Path $ws "BOOTSTRAP.md"
+        if (Test-Path $bootstrap) {
+            Remove-Item $bootstrap -Force
+        }
+
         # AGENTS.md
         $agentsMd = @"
 # AGENTS.md · 工作协议
@@ -160,6 +166,10 @@ for b in bindings:
     if isinstance(match, dict) and 'pattern' in match:
         del match['pattern']
         print(f'  cleaned invalid pattern from binding: {b.get("agentId", "?")}')
+
+# 设置默认 Agent 为太子
+cfg['defaultAgent'] = 'taizi'
+print('  👑 默认 Agent 设为: taizi')
 
 cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding='utf-8')
 print(f'Done: {added} agents added')
@@ -231,19 +241,7 @@ function Setup-Visibility {
     }
 }
 
-# ── Step 5: 首次数据同步 ──
-function First-Sync {
-    Info "执行首次数据同步..."
-    Push-Location $REPO_DIR
-    $env:REPO_DIR = $REPO_DIR
-    try { & $global:PYTHON scripts/sync_agent_config.py } catch { Warn "sync_agent_config 有警告" }
-    try { & $global:PYTHON scripts/sync_officials_stats.py } catch { Warn "sync_officials_stats 有警告" }
-    try { & $global:PYTHON scripts/refresh_live_data.py } catch { Warn "refresh_live_data 有警告" }
-    Pop-Location
-    Log "首次同步完成"
-}
-
-# ── Step 6: 重启 Gateway ──
+# ── Step 5: 重启 Gateway ──
 function Restart-Gateway {
     Info "重启 OpenClaw Gateway..."
     try {
@@ -263,7 +261,6 @@ Register-Agents
 Init-Data
 Link-Resources
 Setup-Visibility
-First-Sync
 Restart-Gateway
 
 Write-Host ""
@@ -279,13 +276,7 @@ Write-Host ""
 Write-Host "  2. 开始使用:"
 Write-Host "     openclaw chat taizi           # CLI 方式与 Agent 对话"
 Write-Host ""
-Write-Host "  🖥️  可选 - 看板系统（可视化任务管理）:"
-Write-Host "     bash scripts/run_loop.sh      # 启动数据刷新循环"
-Write-Host "     python dashboard\server.py    # 启动看板服务"
-Write-Host "     start http://127.0.0.1:7891   # 打开看板"
-Write-Host ""
-Write-Host "  🎨  可选 - 自定义前端:"
-Write-Host "     bash scripts/build_frontend.sh  # 构建 React 前端"
+Write-Host "  🖥️  可选 - 看板系统:  docs/getting-started.md#可选看板系统"
 Write-Host ""
 Warn "首次安装必须配置 API Key，否则 Agent 会报错"
 Info "文档: docs/getting-started.md"

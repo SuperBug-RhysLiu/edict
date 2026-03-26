@@ -105,6 +105,9 @@ create_workspaces() {
       sed "s|__REPO_DIR__|$REPO_DIR|g" "$REPO_DIR/agents/$agent/SOUL.md" > "$ws/SOUL.md"
     fi
     log "Workspace 已创建: $ws"
+
+    # 删除 OpenClaw 自动生成的 BOOTSTRAP.md（会覆盖 SOUL.md 作用）
+    rm -f "$ws/BOOTSTRAP.md"
   done
 
   # 通用 AGENTS.md（工作协议）
@@ -177,6 +180,10 @@ for b in bindings:
         print(f'  🧹 cleaned invalid "pattern" from binding: {b.get("agentId", "?")}')
 if cleaned:
     print(f'Cleaned {cleaned} invalid binding field(s)')
+
+# 设置默认 Agent 为太子
+cfg['defaultAgent'] = 'taizi'
+print('  👑 默认 Agent 设为: taizi')
 
 cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2))
 print(f'Done: {added} agents added')
@@ -341,20 +348,7 @@ sync_auth() {
   info "来源: $MAIN_AUTH"
 }
 
-# ── Step 4: 构建前端 ──────────────────────────────────────────
-# ── Step 5: 首次数据同步 ────────────────────────────────────
-first_sync() {
-  info "执行首次数据同步..."
-  cd "$REPO_DIR"
-  
-  REPO_DIR="$REPO_DIR" python3 scripts/sync_agent_config.py || warn "sync_agent_config 有警告"
-  python3 scripts/sync_officials_stats.py || warn "sync_officials_stats 有警告"
-  python3 scripts/refresh_live_data.py || warn "refresh_live_data 有警告"
-  
-  log "首次同步完成"
-}
-
-# ── Step 6: 重启 Gateway ────────────────────────────────────
+# ── Step 5: 重启 Gateway ────────────────────────────────────
 restart_gateway() {
   info "重启 OpenClaw Gateway..."
   if openclaw gateway restart 2>/dev/null; then
@@ -374,7 +368,6 @@ init_data
 link_resources
 setup_visibility
 sync_auth
-first_sync
 restart_gateway
 
 echo ""
@@ -390,10 +383,7 @@ echo ""
 echo "  2. 开始使用:"
 echo "     openclaw chat taizi           # CLI 方式与 Agent 对话"
 echo ""
-echo "  🖥️  可选 - 看板系统（可视化任务管理）:"
-echo "     bash scripts/run_loop.sh &    # 启动数据刷新循环"
-echo "     python3 dashboard/server.py   # 启动看板服务器"
-echo "     open http://127.0.0.1:7891    # 打开看板"
+echo "  🖥️  可选 - 看板系统:  docs/getting-started.md#可选看板系统"
 echo ""
 warn "首次安装必须配置 API Key，否则 Agent 会报错"
 info "完整文档: docs/getting-started.md"
