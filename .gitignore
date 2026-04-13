@@ -34,5 +34,8 @@ Thumbs.db
 *.log
 /tmp/
 
+# ── Claude Code ──
+.claude/
+
 # ── 备份 ──
 *.bak*

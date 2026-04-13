@@ -100,7 +100,7 @@ function Create-Workspaces {
                 Copy-Item $soulDst "$soulDst.bak.$ts"
                 Warn "已备份旧 SOUL.md → $soulDst.bak.$ts"
             }
-            $content = (Get-Content $soulSrc -Raw) -replace "__REPO_DIR__", $REPO_DIR
+            $content = (Get-Content $soulSrc -Raw -Encoding UTF8) -replace "__REPO_DIR__", $REPO_DIR
             Set-Content -Path $soulDst -Value $content -Encoding UTF8
         }
         Log "Workspace 已创建: $ws"
@@ -270,7 +270,7 @@ Backup-Existing
 Create-Workspaces
 Register-Agents
 Setup-Visibility
-Restart-Gateway
+# Restart-Gateway
 
 # 以下为看板系统准备，核心功能不需要
 # Init-Data
